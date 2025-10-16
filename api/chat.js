@@ -1,12 +1,21 @@
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
+  }
+
+  // Test endpoint - GET request
+  if (req.method === 'GET') {
+    return res.status(200).json({ 
+      message: 'API is working!', 
+      timestamp: new Date().toISOString(),
+      method: req.method 
+    });
   }
 
   if (req.method !== 'POST') {
@@ -25,9 +34,18 @@ export default async function handler(req, res) {
     const AZURE_API_KEY = process.env.AZURE_OPENAI_API_KEY;
     const AZURE_DEPLOYMENT = process.env.AZURE_OPENAI_DEPLOYMENT_NAME;
 
+    console.log('Environment check:', {
+      hasEndpoint: !!AZURE_ENDPOINT,
+      hasApiKey: !!AZURE_API_KEY,
+      hasDeployment: !!AZURE_DEPLOYMENT
+    });
+
     if (!AZURE_ENDPOINT || !AZURE_API_KEY || !AZURE_DEPLOYMENT) {
       console.error('Missing Azure OpenAI environment variables');
-      return res.status(500).json({ error: 'Server configuration error' });
+      return res.status(500).json({ 
+        error: 'Server configuration error',
+        details: 'Missing environment variables'
+      });
     }
 
     // Call Azure OpenAI API
@@ -59,7 +77,10 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Azure API error:', errorText);
-      return res.status(500).json({ error: 'Failed to get AI response' });
+      return res.status(500).json({ 
+        error: 'Failed to get AI response',
+        details: errorText
+      });
     }
 
     const data = await response.json();
@@ -69,6 +90,9 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: error.message 
+    });
   }
 }

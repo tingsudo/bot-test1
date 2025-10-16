@@ -120,6 +120,7 @@
                 chatMessages.scrollTop = chatMessages.scrollHeight;
 
                 // Call our API
+                console.log('Calling API:', '/api/chat');
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
@@ -129,6 +130,8 @@
                         message: message
                     })
                 });
+
+                console.log('API Response status:', response.status);
 
                 // Remove loading message
                 loadingDiv.remove();
