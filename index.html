@@ -72,11 +72,34 @@
             color: #666;
             font-style: italic;
         }
+        .test-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .test-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="chat-container">
         <h1>Simple Chatbot</h1>
+        
+        <div class="test-section">
+            <h3>API Test</h3>
+            <button class="test-btn" onclick="testAPI()">Test API Endpoint</button>
+            <button class="test-btn" onclick="testEnvironment()">Test Environment</button>
+            <div id="testResults"></div>
+        </div>
+        
         <div class="chat-messages" id="chatMessages">
             <div class="message bot-message">
                 Hello! I'm your AI assistant. How can I help you today?
@@ -92,6 +115,7 @@
         const chatMessages = document.getElementById('chatMessages');
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
+        const testResults = document.getElementById('testResults');
 
         function addMessage(text, sender) {
             const messageDiv = document.createElement('div');
@@ -99,6 +123,42 @@
             messageDiv.textContent = text;
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTestResult(message, isError = false) {
+            testResults.innerHTML = `<div style="color: ${isError ? 'red' : 'green'}; margin-top: 10px;">${message}</div>`;
+        }
+
+        async function testAPI() {
+            try {
+                showTestResult('Testing API endpoint...');
+                const response = await fetch('/api/chat');
+                const data = await response.json();
+                showTestResult(`✅ API Test Success: ${JSON.stringify(data)}`);
+            } catch (error) {
+                showTestResult(`❌ API Test Failed: ${error.message}`, true);
+            }
+        }
+
+        async function testEnvironment() {
+            try {
+                showTestResult('Testing environment variables...');
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: 'test' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showTestResult(`✅ Environment Test Success: Got response from Azure GPT`);
+                } else {
+                    const error = await response.json();
+                    showTestResult(`❌ Environment Test Failed: ${error.details || error.error}`, true);
+                }
+            } catch (error) {
+                showTestResult(`❌ Environment Test Failed: ${error.message}`, true);
+            }
         }
 
         async function sendMessage() {
@@ -137,7 +197,8 @@
                 loadingDiv.remove();
 
                 if (!response.ok) {
-                    throw new Error('Failed to get response');
+                    const errorData = await response.json();
+                    throw new Error(`API error: ${errorData.details || errorData.error}`);
                 }
 
                 const data = await response.json();
@@ -145,7 +206,7 @@
 
             } catch (error) {
                 console.error('Error:', error);
-                addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+                addMessage(`Sorry, I encountered an error: ${error.message}`, 'bot');
             } finally {
                 sendBtn.disabled = false;
                 sendBtn.textContent = 'Send';
