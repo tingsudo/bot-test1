@@ -1,5 +1,26 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
+
+// Load environment variables from file
+function loadEnvFile() {
+  try {
+    const envFile = fs.readFileSync('env.local', 'utf8');
+    const lines = envFile.split('\n');
+    lines.forEach(line => {
+      const [key, value] = line.split('=');
+      if (key && value) {
+        process.env[key.trim()] = value.trim();
+      }
+    });
+    console.log('Environment variables loaded from env.local');
+  } catch (error) {
+    console.log('No env.local file found, using system environment variables');
+  }
+}
+
+loadEnvFile();
+
 const app = express();
 const PORT = 3000;
 
