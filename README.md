@@ -72,6 +72,27 @@ Your chatbot will be available at: `https://your-project-name.vercel.app`
 
 ## Local Development (Optional)
 
+### Method 1: Simple Express Server (Recommended for testing)
+
+```bash
+# Install dependencies
+npm install
+
+# Create .env file for local testing
+echo "AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/" > .env
+echo "AZURE_OPENAI_API_KEY=your-api-key-here" >> .env
+echo "AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4" >> .env
+
+# Start the server
+npm start
+# or
+node server.js
+```
+
+Then visit: `http://localhost:3000`
+
+### Method 2: Vercel CLI (For production-like testing)
+
 ```bash
 # Install Vercel CLI
 npm install -g vercel
@@ -84,8 +105,8 @@ echo "AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/" > .env.loca
 echo "AZURE_OPENAI_API_KEY=your-api-key-here" >> .env.local
 echo "AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4" >> .env.local
 
-# Run locally
-vercel dev
+# Run locally with Vercel
+npm run vercel-dev
 ```
 
 ## Troubleshooting
