@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .chat-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #fafafa;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: 20%;
+        }
+        .bot-message {
+            background-color: #e9ecef;
+            color: #333;
+            margin-right: 20%;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        #userInput {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        #sendBtn {
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #sendBtn:hover {
+            background-color: #0056b3;
+        }
+        #sendBtn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h1>Simple Chatbot</h1>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                Hello! I'm your AI assistant. How can I help you today?
+            </div>
+        </div>
+        <div class="input-container">
+            <input type="text" id="userInput" placeholder="Type your message here..." />
+            <button id="sendBtn">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            messageDiv.textContent = text;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addMessage(message, 'user');
+            userInput.value = '';
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Sending...';
+
+            try {
+                // Add loading message
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = 'message bot-message loading';
+                loadingDiv.textContent = 'Thinking...';
+                chatMessages.appendChild(loadingDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                // Call our API
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message
+                    })
+                });
+
+                // Remove loading message
+                loadingDiv.remove();
+
+                if (!response.ok) {
+                    throw new Error('Failed to get response');
+                }
+
+                const data = await response.json();
+                addMessage(data.response, 'bot');
+
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Send';
+            }
+        }
+
+        // Event listeners
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
