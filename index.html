@@ -3,223 +3,782 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Chatbot</title>
+    <title>Chat with HerPower</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=Open+Sans:wght@300;400;600&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
         .chat-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2.2rem;
+        }
+
+        .chat-header h1 {
+            color: var(--accent-color);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .chat-messages {
+            height: 150px;
+            overflow-y: auto;
+            padding: 1rem;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            flex-grow: 1;
+            transition: height 0.3s ease;
+        }
+
+        .chat-messages.expanded {
+            height: calc(90vh - 250px);
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            padding: 0.8rem;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+
+        .user-message {
+            background: #FFE4E8;  /* Light pink background */
+            color: #333;  /* Darker text color for better contrast */
+            margin-left: auto;
+        }
+
+        .bot-message {
+            background: #f0f0f0;
+            color: var(--text-color);
+        }
+
+        .bot-message p {
+            margin: 0.5em 0;
+        }
+
+        .bot-message ul, .bot-message ol {
+            margin: 0.5em 0;
+            padding-left: 1.5em;
+        }
+
+        .bot-message li {
+            margin: 0.3em 0;
+        }
+
+        .bot-message code {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .bot-message pre {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 1em;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        .bot-message blockquote {
+            border-left: 3px solid var(--accent-color);
+            margin: 0.5em 0;
+            padding-left: 1em;
+            color: #666;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 1rem;
+            flex-shrink: 0;
+            margin-top: auto;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .chat-input button {
+            padding: 0.8rem 1.5rem;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .chat-input button:hover {
+            background: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                margin: 1rem;
+                padding: 0.5rem;
+                min-height: 250px;
+            }
+
+            .chat-messages {
+                height: 100px;
+            }
+
+            .chat-messages.expanded {
+                height: calc(65vh - 120px);
+            }
+
+            .message {
+                max-width: 90%;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .chat-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .chat-header-img {
+                margin-top: 0.5rem;
+            }
+        }
+
+        .disclaimer a {
+            color: #d72660;
+            font-weight: 00;
+            text-decoration: underline;
+        }
+        .disclaimer a:hover {
+            color: #a81c47;
+        }
+
+        .visitor-stats {
+            background: #f8f9fa;
+            padding: 2rem 0;
+            margin-top: 2rem;
+        }
+
+        .stats-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+
+        .visitor-counter {
+            flex: 0 0 200px;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .visitor-counter h2 {
+            color: var(--accent-color);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        #visitorCount {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .visitor-map {
+            flex: 1;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .visitor-map h2 {
+            color: var(--accent-color);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        #map {
+            height: 250px;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-container {
+                flex-direction: column;
+                padding: 0 1rem;
+            }
+
+            .visitor-counter {
+                flex: none;
+                width: 100%;
+            }
+
+            #map {
+                height: 180px;
+            }
+        }
+
+        .bottom-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            max-width: 900px;
+            margin: 2rem auto 0 auto;
+            padding: 0 1rem;
+        }
+        .map-col {
+            flex: 0 0 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: auto;
+            padding: 0;
+            margin: 0;
+        }
+        .map-wrapper {
+            width: 180px;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 0;
+        }
+        .carousel-col {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            min-width: 0;
+        }
+        .testimonial-carousel {
+            width: 100%;
             background: white;
             border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .chat-messages {
-            height: 400px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin-bottom: 20px;
-            background-color: #fafafa;
-        }
-        .message {
-            margin-bottom: 15px;
-            padding: 10px;
-            border-radius: 8px;
-        }
-        .user-message {
-            background-color: #007bff;
-            color: white;
-            margin-left: 20%;
-        }
-        .bot-message {
-            background-color: #e9ecef;
-            color: #333;
-            margin-right: 20%;
-        }
-        .input-container {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            padding: 1.2rem 2.2rem;
             display: flex;
-            gap: 10px;
+            align-items: center;
+            position: relative;
+            min-height: 180px;
         }
-        #userInput {
+        .testimonial-content {
             flex: 1;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
+            text-align: left;
+            font-size: 0.98rem;
+            color: #222;
+            font-family: 'Open Sans', sans-serif;
+            height: 90px;
+            max-width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
-        #sendBtn {
-            padding: 12px 24px;
-            background-color: #007bff;
-            color: white;
+        .testimonial-text {
+            flex: 1;
+            margin-bottom: 0.7rem;
+            font-size: 0.85rem;
+        }
+        .testimonial-user {
+            font-size: 0.85rem;
+            color: #856404;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+        }
+        .carousel-arrow {
+            background: #fff3cd;
             border: none;
-            border-radius: 5px;
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: #d72660;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             cursor: pointer;
-            font-size: 16px;
+            margin: 0 0.5rem;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
         }
-        #sendBtn:hover {
-            background-color: #0056b3;
+        .carousel-arrow svg {
+            width: 20px;
+            height: 20px;
         }
-        #sendBtn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
+        .carousel-arrow:hover {
+            background: #ffeeba;
+            color: #a81c47;
+            box-shadow: 0 4px 12px rgba(215,38,96,0.12);
         }
-        .loading {
-            color: #666;
-            font-style: italic;
+        @media (max-width: 768px) {
+            .bottom-row {
+                flex-direction: column;
+                gap: 1.5rem;
+                max-width: 100%;
+                margin-top: 1.5rem;
+            }
+            .map-col, .carousel-col {
+                width: 100%;
+                justify-content: center;
+                align-items: center;
+            }
+            .map-wrapper {
+                width: 90vw;
+                max-width: 220px;
+                height: 100px;
+                margin: 0 auto;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-top: 2em;
+            }
+            .testimonial-carousel {
+                padding: 1.5rem 1.1rem;
+                min-height: 160px;
+                max-width: 98vw;
+                margin: 0 auto;
+                box-sizing: border-box;
+                border-radius: 30px;
+            }
+            .testimonial-content {
+                width: 100%;
+                box-sizing: border-box;
+                padding: 0.2rem 0.2rem 0.2rem 0.2rem;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+            .carousel-arrow {
+                margin: 0 0.2rem;
+                min-width: 38px;
+            }
+            .testimonial-text {
+                font-size: 0.8rem;
+                margin-bottom: 0.5rem;
+            }
         }
-        .test-section {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .test-btn {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 10px;
+        @media (max-width: 900px) {
+            .bottom-row {
+                flex-direction: column;
+                gap: 2.5rem;
+                max-width: 100%;
+                margin-top: 1.5rem;
+            }
+            .map-wrapper {
+                margin-bottom: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="chat-container">
-        <h1>Simple Chatbot</h1>
-        
-        <div class="test-section">
-            <h3>API Test</h3>
-            <button class="test-btn" onclick="testAPI()">Test API Endpoint</button>
-            <button class="test-btn" onclick="testEnvironment()">Test Environment</button>
-            <div id="testResults"></div>
+    <header>
+        <nav class="nav-mobile-2row">
+            <div class="nav-row nav-row-top">
+                <div class="logo">
+                    <img src="resources/logo.avif" alt="HerPower Logo">
+                </div>
+                <div id="langSwitch">
+                    <span id="langEN" class="active">EN</span> | <span id="langZH">中文</span>
+                </div>
+            </div>
+            <div class="nav-row nav-row-bottom">
+                <ul id="navLinks">
+                    <li><a href="https://www.herpowercanada.org/" id="navHome">Home</a></li>
+                    <li><a href="https://www.herpowercanada.org/services-5-3" id="navCurriculum">Curriculum</a></li>
+                    <li><a href="https://coach.herpowercanada.org/" id="navCoach">Coach</a></li>
+                    <li><a href="https://www.herpowercanada.org/joinus" id="navContact">Contact Us</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main class="chat-container">
+        <div class="chat-header">
+            <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; text-align: left;">
+                <h1 style="margin-bottom: 0.3rem;" id="chatTitle">Chat with HerPower Coach</h1>
+                <p style="margin: 0;" id="chatSubtitle">I'm here to help improve  communication between parents and teens. </p>
+            </div>
+            <img src="resources/coach.png" alt="Coach" class="chat-header-img" style="height: 90px; width: 90px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.07); background: #fff6f8; margin-left: 0.5rem;" />
         </div>
-        
+
+        <div class="disclaimer" id="disclaimerBox" style="background-color: #fff3cd; color: #856404; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #ffeeba;">
+            <div id="disclaimerToggle" style="cursor:pointer; font-weight:600; display:flex; align-items:center; min-height: 1.5em; font-size:0.85rem;">
+                <span id="disclaimerToggleText">Show Disclaimer</span>
+                <span id="disclaimerArrow" style="margin-left:8px;">▼</span>
+            </div>
+            <div id="disclaimerContent" style="display:none; margin-top:0.5rem; font-size: 0.9rem; line-height: 1.5; padding: 0;"></div>
+        </div>
+
+        <!-- Info Bar: Curriculum & Feedback -->
+        <div id="infoBar" style="background: #323638; color: #fff; border-radius: 8px; padding: 0.7rem 1rem; margin-bottom: 1.2rem; border: 1px solid #333; font-size: 0.9rem; line-height: 1.4;">
+            <!-- Content will be set by JavaScript -->
+        </div>
+
         <div class="chat-messages" id="chatMessages">
-            <div class="message bot-message">
-                Hello! I'm your AI assistant. How can I help you today?
+            <div class="message bot-message" id="initBotMsg">
+                Hello! I'm your communication coach, here to help improve understanding between parents and teens. How can I assist you today?
             </div>
         </div>
-        <div class="input-container">
+
+        <div class="chat-input">
             <input type="text" id="userInput" placeholder="Type your message here..." />
-            <button id="sendBtn">Send</button>
+            <button onclick="sendMessage()" id="sendBtn">Send</button>
         </div>
-    </div>
+    </main>
+
+    <!-- Bottom section: Map + Testimonial Carousel -->
+    <section class="bottom-row">
+        <div class="map-col">
+            <div class="map-wrapper">
+                <script type="text/javascript" id="clustrmaps" src="//cdn.clustrmaps.com/map_v2.js?cl=684343&w=300&t=tt&d=XYRw-bsroMTnso2_Adyv5schKTCOFaF-yN9ZhkPK0z8&co=edcf6c&cmo=e837b8&cmn=7342c9&ct=5e4646"></script>
+            </div>
+        </div>
+        <div class="carousel-col">
+            <div class="testimonial-carousel" id="testimonialCarousel">
+                <button class="carousel-arrow left" id="carouselPrev">&#8592;</button>
+                <div class="testimonial-content" id="testimonialContent">
+                    <!-- Testimonials will be injected here -->
+                </div>
+                <button class="carousel-arrow right" id="carouselNext">&#8594;</button>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <p id="footerCopyright">&copy; 2025 HerPower. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <a href="#" class="scroll-to-top" id="scrollTop" title="Scroll to Top" style="background-color: #323638; color: white; position: fixed; bottom: 40px; right: 40px; width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; text-decoration: none; font-size: 24px; z-index: 9999;">
+        ↑
+    </a>
+
 
     <script>
-        const chatMessages = document.getElementById('chatMessages');
-        const userInput = document.getElementById('userInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const testResults = document.getElementById('testResults');
+        // Vercel API endpoint (proxies to Azure OpenAI)
+        const API_ENDPOINT = '/api/chat';
+
+        // Store conversation history
+        let conversationHistory = [
+            {
+                role: "system",
+                content: "You are a compassionate and emotionally intelligent AI conversation coach. Your role is to support and guide positive communication between parents and their teenage children. You help them understand each other's perspectives, express their feelings constructively, and find common ground. Your responses should reduce tension, prevent conflict, and foster mutual respect and empathy.\n\nUse the following principles:\n\nBe neutral, never take sides.\n\nEncourage both parties to listen and validate each other's feelings.\n\nUse simple, respectful language suitable for both teenagers and adults.\n\nOffer conversation tips, reflection prompts, and rephrasing suggestions.\n\nPromote curiosity over judgment, and cooperation over control.\n\nHelp reframe negative emotions into constructive dialogue.\n\nSuggest pauses, empathy-building activities, or breaks if the conversation escalates.\n\nAlways aim to build trust, emotional safety, and effective collaboration."
+            }
+        ];
+        // Function to expand chat messages area
+        function expandChatMessages() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.classList.add('expanded');
+        }
+
+        // Scroll to top functionality
+        document.getElementById("scrollTop").addEventListener("click", function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        });
+
+        // Chat functionality
+        async function sendMessage() {
+            const userInput = document.getElementById('userInput');
+            const message = userInput.value.trim();
+            
+            if (message) {
+                // Add user message
+                addMessage(message, 'user');
+                
+                // Add user message to conversation history
+                conversationHistory.push({
+                    role: "user",
+                    content: message
+                });
+                
+                // Clear input
+                userInput.value = '';
+                
+                try {
+                    // Show loading message
+                    const loadingDiv = document.createElement('div');
+                    loadingDiv.className = 'message bot-message';
+                    loadingDiv.textContent = 'Thinking...';
+                    document.getElementById('chatMessages').appendChild(loadingDiv);
+
+                    // Call Vercel API endpoint (which proxies to Azure OpenAI)
+                    const response = await fetch(API_ENDPOINT, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            messages: conversationHistory
+                        })
+                    });
+
+                    // Remove loading message
+                    loadingDiv.remove();
+
+                    if (!response.ok) {
+                        const errorData = await response.text();
+                        console.error('API Error:', errorData);
+                        throw new Error(`API request failed with status ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const botResponse = data.choices[0].message.content;
+                    
+                    // Add bot response to conversation history
+                    conversationHistory.push({
+                        role: "assistant",
+                        content: botResponse
+                    });
+                    
+                    addMessage(botResponse, 'bot');
+                    
+                    // Expand chat messages area after receiving response
+                    expandChatMessages();
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    // Remove loading message if it exists
+                    const loadingDiv = document.querySelector('.message.bot-message:last-child');
+                    if (loadingDiv && loadingDiv.textContent === 'Thinking...') {
+                        loadingDiv.remove();
+                    }
+                    
+                    // Show user-friendly error message
+                    addMessage('I apologize, but I\'m having trouble connecting right now. This might be due to network issues or server maintenance. Please try again in a few moments.', 'bot');
+                    
+                    // Expand chat messages area even for error messages
+                    expandChatMessages();
+                }
+            }
+        }
 
         function addMessage(text, sender) {
+            const chatMessages = document.getElementById('chatMessages');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender}-message`;
-            messageDiv.textContent = text;
+            
+            if (sender === 'bot') {
+                // Parse markdown for bot messages
+                messageDiv.innerHTML = marked.parse(text);
+            } else {
+                // Keep user messages as plain text
+                messageDiv.textContent = text;
+            }
+            
             chatMessages.appendChild(messageDiv);
+            
+            // Scroll to bottom
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function showTestResult(message, isError = false) {
-            testResults.innerHTML = `<div style="color: ${isError ? 'red' : 'green'}; margin-top: 10px;">${message}</div>`;
-        }
-
-        async function testAPI() {
-            try {
-                showTestResult('Testing API endpoint...');
-                const response = await fetch('/api/chat');
-                const data = await response.json();
-                showTestResult(`✅ API Test Success: ${JSON.stringify(data)}`);
-            } catch (error) {
-                showTestResult(`❌ API Test Failed: ${error.message}`, true);
-            }
-        }
-
-        async function testEnvironment() {
-            try {
-                showTestResult('Testing environment variables...');
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: 'test' })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    showTestResult(`✅ Environment Test Success: Got response from Azure GPT`);
-                } else {
-                    const error = await response.json();
-                    showTestResult(`❌ Environment Test Failed: ${error.details || error.error}`, true);
-                }
-            } catch (error) {
-                showTestResult(`❌ Environment Test Failed: ${error.message}`, true);
-            }
-        }
-
-        async function sendMessage() {
-            const message = userInput.value.trim();
-            if (!message) return;
-
-            // Add user message
-            addMessage(message, 'user');
-            userInput.value = '';
-            sendBtn.disabled = true;
-            sendBtn.textContent = 'Sending...';
-
-            try {
-                // Add loading message
-                const loadingDiv = document.createElement('div');
-                loadingDiv.className = 'message bot-message loading';
-                loadingDiv.textContent = 'Thinking...';
-                chatMessages.appendChild(loadingDiv);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-
-                // Call our API
-                console.log('Calling API:', '/api/chat');
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        message: message
-                    })
-                });
-
-                console.log('API Response status:', response.status);
-
-                // Remove loading message
-                loadingDiv.remove();
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`API error: ${errorData.details || errorData.error}`);
-                }
-
-                const data = await response.json();
-                addMessage(data.response, 'bot');
-
-            } catch (error) {
-                console.error('Error:', error);
-                addMessage(`Sorry, I encountered an error: ${error.message}`, 'bot');
-            } finally {
-                sendBtn.disabled = false;
-                sendBtn.textContent = 'Send';
-            }
-        }
-
-        // Event listeners
-        sendBtn.addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', (e) => {
+        // Allow sending message with Enter key
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 sendMessage();
             }
         });
+
+        // 多语言文本
+        const TEXTS = {
+            en: {
+                pageTitle: 'Chat with HerPower',
+                navHome: 'Home',
+                navCurriculum: 'Curriculum',
+                navCoach: 'Coach',
+                navContact: 'Contact Us',
+                chatTitle: 'Chat with HerPower Coach',
+                chatSubtitle: "I'm here to help improve  communication between parents and teens.",
+                disclaimerShow: 'Show Disclaimer',
+                disclaimerHide: 'Hide Disclaimer',
+                disclaimer: `<strong>Disclaimer:</strong> This chatbot is for general communication guidance and emotional support only. It is not a substitute for professional medical, mental health, or legal advice. If you are experiencing distress or need professional help, please consult a licensed expert. If you encounter any issues or bugs, please report them via email: <a href='mailto:info@herpowercanada.org'>info@herpowercanada.org</a> — we appreciate your feedback!`,
+                initBotMsg: "Hello! I'm your communication coach, here to help improve understanding between parents and teens. How can I assist you today?",
+                inputPlaceholder: 'Type your message here...',
+                sendBtn: 'Send',
+                copyright: '&copy; 2025 HerPower. All Rights Reserved.',
+                testimonials: [
+                    {
+                        text: "As a mom, HerPower Communication Coach helped me finally have a calm, meaningful talk with my child about screen time, using the right words and a respectful, effective approach.",
+                        user: "Tina L., Parent of Teen"
+                    },
+                    {
+                        text: "I was struggling to talk to my teen about school stress. The coach's tips made our talks less tense and more productive. Highly recommend!",
+                        user: "James W., Father of Two"
+                    },
+                    {
+                        text: "This chatbot gave me practical ways to listen to my daughter and made our relationship stronger.",
+                        user: "Vivian S., Mom of a 15-year-old"
+                    }
+                ],
+                infoBar: `Explore our curriculum and workshops: <a href="https://www.herpowercanada.org" target="_blank" style="color:#ef3aaa; text-decoration:underline;">herpowercanada.org</a>. Share your feedback at <a href="mailto:info@herpowercanada.org" style="color:#ef3aaa; text-decoration:underline;">info@herpowercanada.org</a> - thank you!`
+            },
+            zh: {
+                pageTitle: '与HerPower教练对话',
+                navHome: '首页',
+                navCurriculum: '课程',
+                navCoach: '教练',
+                navContact: '联系我们',
+                chatTitle: '与HerPower教练对话',
+                chatSubtitle: '帮助改善父母与青少年之间的沟通',
+                disclaimerShow: '显示免责声明',
+                disclaimerHide: '隐藏免责声明',
+                disclaimer: `<strong>免责声明：</strong>本聊天机器人仅用于一般沟通指导和情感支持，不能替代专业医疗、心理健康或法律建议。如有困扰或需要专业帮助，请咨询持证专家。如遇到任何问题或bug，欢迎通过邮件反馈：<a href='mailto:info@herpowercanada.org'>info@herpowercanada.org</a>，感谢您的支持！`,
+                initBotMsg: '您好！我是您的沟通教练，致力于帮助父母与青少年更好地理解彼此。有什么我可以帮您的吗？',
+                inputPlaceholder: '请输入您的问题或想法……',
+                sendBtn: '发送',
+                copyright: '&copy; 2025 HerPower。保留所有权利。',
+                testimonials: [
+                    {
+                        text: "作为一名妈妈，HerPower沟通教练帮助我终于和孩子平静地聊了聊屏幕时间。它让我用更尊重和有效的方式与孩子沟通。",
+                        user: "李婷，青少年家长"
+                    },
+                    {
+                        text: "我很难和孩子聊学业压力，教练的建议让我们的对话不再紧张，更有成效。强烈推荐！",
+                        user: "王先生，两孩父亲"
+                    },
+                    {
+                        text: "这个机器人让我学会了倾听女儿，关系变得更亲近了。",
+                        user: "苏薇，15岁女孩的妈妈"
+                    }
+                ],
+                infoBar: `探索我们的课程和工作坊：<a href="https://www.herpowercanada.org" target="_blank" style="color:#ef3aaa; text-decoration:underline;">herpowercanada.org</a>。分享您的反馈至 <a href="mailto:info@herpowercanada.org" style="color:#ef3aaa; text-decoration:underline;">info@herpowercanada.org</a> - 谢谢！`
+            }
+        };
+        let currentLang = 'en';
+
+        // Collapsible disclaimer functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize disclaimer functionality
+            const toggle = document.getElementById('disclaimerToggle');
+            const content = document.getElementById('disclaimerContent');
+            const toggleText = document.getElementById('disclaimerToggleText');
+            const arrow = document.getElementById('disclaimerArrow');
+            let expanded = false;
+            toggle.addEventListener('click', function() {
+                expanded = !expanded;
+                if (expanded) {
+                    content.innerHTML = TEXTS[currentLang].disclaimer;
+                    content.style.display = 'block';
+                    toggleText.textContent = TEXTS[currentLang].disclaimerHide;
+                    arrow.textContent = '▲';
+                } else {
+                    content.innerHTML = '';
+                    content.style.display = 'none';
+                    toggleText.textContent = TEXTS[currentLang].disclaimerShow;
+                    arrow.textContent = '▼';
+                }
+            });
+
+            // Initialize testimonial carousel
+            showTestimonial(currentTestimonial);
+            document.getElementById('carouselPrev').innerHTML = '<svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>';
+            document.getElementById('carouselNext').innerHTML = '<svg viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
+            document.getElementById('carouselPrev').onclick = function() {
+                const currentTestimonials = TEXTS[currentLang].testimonials;
+                currentTestimonial = (currentTestimonial - 1 + currentTestimonials.length) % currentTestimonials.length;
+                showTestimonial(currentTestimonial);
+            };
+            document.getElementById('carouselNext').onclick = function() {
+                const currentTestimonials = TEXTS[currentLang].testimonials;
+                currentTestimonial = (currentTestimonial + 1) % currentTestimonials.length;
+                showTestimonial(currentTestimonial);
+            };
+            setInterval(function() {
+                const currentTestimonials = TEXTS[currentLang].testimonials;
+                currentTestimonial = (currentTestimonial + 1) % currentTestimonials.length;
+                showTestimonial(currentTestimonial);
+            }, 8000);
+
+            // Initialize language switching
+            document.getElementById('langEN').onclick = function() { switchLang('en'); };
+            document.getElementById('langZH').onclick = function() { switchLang('zh'); };
+            
+            // Initialize info bar with current language
+            document.getElementById('infoBar').innerHTML = TEXTS[currentLang].infoBar;
+        });
+
+        // Testimonial carousel logic
+        let currentTestimonial = 0;
+        function showTestimonial(idx) {
+            const content = document.getElementById('testimonialContent');
+            const currentTestimonials = TEXTS[currentLang].testimonials;
+            content.innerHTML = `
+                <div class="testimonial-text">${currentTestimonials[idx].text}</div>
+                <div class="testimonial-user">${currentTestimonials[idx].user}</div>
+            `;
+        }
+
+        function switchLang(lang) {
+            if (lang === currentLang) return;
+            currentLang = lang;
+            // 切换页面标题
+            document.title = TEXTS[lang].pageTitle;
+            // 切换导航
+            document.getElementById('navHome').textContent = TEXTS[lang].navHome;
+            document.getElementById('navCurriculum').textContent = TEXTS[lang].navCurriculum;
+            document.getElementById('navCoach').textContent = TEXTS[lang].navCoach;
+            document.getElementById('navContact').textContent = TEXTS[lang].navContact;
+            // 切换标题
+            document.getElementById('chatTitle').textContent = TEXTS[lang].chatTitle;
+            document.getElementById('chatSubtitle').textContent = TEXTS[lang].chatSubtitle;
+            // 切换免责声明按钮和内容
+            const toggleText = document.getElementById('disclaimerToggleText');
+            const arrow = document.getElementById('disclaimerArrow');
+            const disclaimerContent = document.getElementById('disclaimerContent');
+            if (disclaimerContent.style.display === 'block') {
+                toggleText.textContent = TEXTS[lang].disclaimerHide;
+                arrow.textContent = '▲';
+                disclaimerContent.innerHTML = TEXTS[lang].disclaimer;
+            } else {
+                toggleText.textContent = TEXTS[lang].disclaimerShow;
+                arrow.textContent = '▼';
+                disclaimerContent.innerHTML = '';
+            }
+            // 切换初始机器人消息
+            const initBotMsg = document.getElementById('initBotMsg');
+            if (initBotMsg) initBotMsg.textContent = TEXTS[lang].initBotMsg;
+            // 输入框
+            document.getElementById('userInput').placeholder = TEXTS[lang].inputPlaceholder;
+            // 发送按钮
+            document.getElementById('sendBtn').textContent = TEXTS[lang].sendBtn;
+            // 页脚
+            document.getElementById('footerCopyright').innerHTML = TEXTS[lang].copyright;
+            // 评价轮播
+            showTestimonial(currentTestimonial);
+            // 语言按钮高亮
+            document.getElementById('langEN').classList.toggle('active', lang === 'en');
+            document.getElementById('langZH').classList.toggle('active', lang === 'zh');
+            // Info bar
+            document.getElementById('infoBar').innerHTML = TEXTS[lang].infoBar;
+        }
     </script>
 </body>
-</html>
+</html> 

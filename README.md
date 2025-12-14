@@ -1,122 +1,62 @@
-# Simple Chatbot with Azure OpenAI
+# HerPower Chat Application
 
-A minimal chatbot that uses Azure OpenAI GPT API, deployed on Vercel.
+A communication coaching chatbot application deployed on Vercel.
 
-## Files Created
+## Setup for Vercel Deployment
 
-- `index.html` - Simple chatbot interface
-- `api/chat.js` - Vercel serverless function for Azure API
-- `package.json` - Node.js configuration
-- `vercel.json` - Vercel deployment configuration
+### 1. Environment Variables
 
-## How to Deploy on Vercel
+Before deploying to Vercel, you need to configure the following environment variables in your Vercel project settings:
 
-### Step 1: Push to GitHub
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin https://github.com/yourusername/your-repo-name.git
-git push -u origin main
-```
+- `AZURE_OPENAI_ENDPOINT`: Your Azure OpenAI endpoint (e.g., `https://your-resource.openai.azure.com`)
+- `AZURE_OPENAI_API_KEY`: Your Azure OpenAI API key
+- `AZURE_OPENAI_DEPLOYMENT_NAME`: (Optional) Your deployment name (defaults to `gpt-4`)
 
-### Step 2: Deploy on Vercel
+### 2. How to Add Environment Variables in Vercel
 
-1. **Go to [vercel.com](https://vercel.com)** and sign in with GitHub
-2. **Click "New Project"**
-3. **Import your GitHub repository**
-4. **Configure Environment Variables** (IMPORTANT!)
+1. Go to your Vercel project dashboard
+2. Navigate to **Settings** → **Environment Variables**
+3. Add each variable:
+   - `AZURE_OPENAI_ENDPOINT`: Your Azure OpenAI resource endpoint
+   - `AZURE_OPENAI_API_KEY`: Your Azure OpenAI API key
+   - `AZURE_OPENAI_DEPLOYMENT_NAME`: (Optional) Your deployment name
 
-### Step 3: Set Up API Keys in Vercel
-
-**In your Vercel project dashboard:**
-
-1. Go to **Settings** → **Environment Variables**
-2. Add these 3 variables:
-
-| Variable Name | Value | Description |
-|---------------|-------|-------------|
-| `AZURE_OPENAI_ENDPOINT` | `https://your-resource.openai.azure.com/` | Your Azure OpenAI endpoint URL |
-| `AZURE_OPENAI_API_KEY` | `your-api-key-here` | Your Azure OpenAI API key |
-| `AZURE_OPENAI_DEPLOYMENT_NAME` | `gpt-4` or `gpt-35-turbo` | Your deployment name |
-
-**Example values:**
-```
-AZURE_OPENAI_ENDPOINT = https://myopenai.openai.azure.com/
-AZURE_OPENAI_API_KEY = abc123def456ghi789
-AZURE_OPENAI_DEPLOYMENT_NAME = gpt-4
-```
-
-3. **Click "Save"** for each variable
-4. **Go to Deployments** and click **"Redeploy"**
-
-### Step 4: Test Your Chatbot
-
-Your chatbot will be available at: `https://your-project-name.vercel.app`
-
-## Getting Azure OpenAI Credentials
-
-1. **Create Azure OpenAI Resource:**
-   - Go to [Azure Portal](https://portal.azure.com)
-   - Create a new "Azure OpenAI" resource
-   - Note the endpoint URL
-
-2. **Deploy a Model:**
-   - Go to Azure OpenAI Studio
-   - Create a new deployment (GPT-4 or GPT-3.5-turbo)
-   - Note the deployment name
-
-3. **Get API Key:**
-   - In Azure Portal → Your OpenAI resource → Keys and Endpoint
-   - Copy Key 1 or Key 2
-
-## Local Development (Optional)
-
-### Method 1: Simple Express Server (Recommended for testing)
+### 3. Deploy to Vercel
 
 ```bash
-# Install dependencies
-npm install
+# Install Vercel CLI (if not already installed)
+npm i -g vercel
 
-# Create .env file for local testing
-echo "AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/" > .env
-echo "AZURE_OPENAI_API_KEY=your-api-key-here" >> .env
-echo "AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4" >> .env
-
-# Start the server
-npm start
-# or
-node server.js
+# Deploy
+vercel
 ```
 
-Then visit: `http://localhost:3000`
+Or connect your GitHub repository to Vercel for automatic deployments.
 
-### Method 2: Vercel CLI (For production-like testing)
+## Architecture
+
+- **Frontend**: Static HTML/CSS/JavaScript files
+- **API**: Vercel serverless function at `/api/chat.js` that proxies requests to Azure OpenAI
+- **Credentials**: Stored securely as environment variables in Vercel
+
+## Local Development
+
+For local development, create a `.env.local` file with your Azure credentials:
+
+```env
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
+AZURE_OPENAI_API_KEY=your-api-key
+AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4
+```
+
+Then run:
 
 ```bash
-# Install Vercel CLI
-npm install -g vercel
-
-# Login to Vercel
-vercel login
-
-# Create .env.local file
-echo "AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/" > .env.local
-echo "AZURE_OPENAI_API_KEY=your-api-key-here" >> .env.local
-echo "AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4" >> .env.local
-
-# Run locally with Vercel
-npm run vercel-dev
+vercel dev
 ```
 
-## Troubleshooting
+## Notes
 
-- **"Server configuration error"**: Check that all 3 environment variables are set in Vercel
-- **"Failed to get AI response"**: Verify your Azure API key and deployment name
-- **CORS errors**: The API includes CORS headers, should work automatically
-
-## Security Notes
-
-✅ **API keys are stored securely** in Vercel environment variables  
-✅ **No sensitive data** in your GitHub repository  
-✅ **HTTPS enabled** automatically by Vercel
+- The application no longer depends on Azure API Management
+- All Azure OpenAI credentials are stored as environment variables
+- The API endpoint is now a Vercel serverless function that securely proxies requests to Azure OpenAI
